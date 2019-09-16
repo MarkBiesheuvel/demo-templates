@@ -1,0 +1,187 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: VPC with VPC endpoints
+
+Parameters:
+
+  CidrRange:
+    Type: String
+    Default: 10.11.12.0/24
+
+Mappings:
+
+  RegionMap:
+    us-east-1:
+      AmiId: ami-0080e4c5bc078760e
+    us-west-2:
+      AmiId: ami-01e24be29428c15b2
+    us-west-1:
+      AmiId: ami-0ec6517f6edbf8044
+    eu-west-1:
+      AmiId: ami-08935252a36e25f85
+    eu-west-2:
+      AmiId: ami-01419b804382064e4
+    eu-west-3:
+      AmiId: ami-0dd7e7ed60da8fb83
+    eu-central-1:
+      AmiId: ami-0cfbf4f6db41068ac
+    eu-north-1:
+      AmiId: ami-86fe70f8
+    ap-northeast-1:
+      AmiId: ami-00a5245b4816c38e6
+    ap-northeast-2:
+      AmiId: ami-00dc207f8ba6dc919
+    ap-northeast-3:
+      AmiId: ami-0b65f69a5c11f3522
+    ap-southeast-1:
+      AmiId: ami-05b3bcf7f311194b3
+    ap-southeast-2:
+      AmiId: ami-02fd0b06f06d93dfc
+    ap-south-1:
+      AmiId: ami-0ad42f4f66f6c1cc9
+    us-east-2:
+      AmiId: ami-0cd3dfa4e37921605
+    ca-central-1:
+      AmiId: ami-07423fb63ea0a0930
+    sa-east-1:
+      AmiId: ami-05145e0b28ad8e0b2
+    cn-north-1:
+      AmiId: ami-053617c9d818c1189
+    cn-northwest-1:
+      AmiId: ami-0f7937761741dc640
+
+Resources:
+
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref CidrRange
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${AWS::StackName}-vpc
+
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      CidrBlock: !Ref CidrRange
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-subnet
+
+  RouteTableSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-route-table
+
+  S3VpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      RouteTableIds:
+        - !Ref RouteTable
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      VpcId: !Ref Vpc
+
+  DynamoDbVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.dynamodb
+      VpcEndpointType: Gateway
+      VpcId: !Ref Vpc
+      RouteTableIds:
+        - !Ref RouteTable
+
+  SsmVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssm
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: True
+      VpcId: !Ref Vpc
+      SubnetIds:
+        - !Ref Subnet
+
+  SsmMessagesVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssmmessages
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: True
+      VpcId: !Ref Vpc
+      SubnetIds:
+        - !Ref Subnet
+
+  Ec2MessagesVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ec2messages
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: True
+      VpcId: !Ref Vpc
+      SubnetIds:
+        - !Ref Subnet
+
+  Instance:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - SsmVpcEndpoint
+      - SsmMessagesVpcEndpoint
+      - Ec2MessagesVpcEndpoint
+    Properties:
+      InstanceType: t3.micro
+      IamInstanceProfile: !Ref InstanceProfile
+      SubnetId: !Ref Subnet
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref AWS::Region
+        - AmiId
+      UserData:
+        Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            echo -e "+noall +answer" > /root/.digrc
+
+            mkdir /root/.aws
+            echo -e "[default]\nregion = ${AWS::Region}" > /root/.aws/config
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${AWS::StackName}-instance
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: ec2.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
