@@ -135,6 +135,7 @@ Resources:
 
   DatabaseCluster:
     Type: AWS::RDS::DBCluster
+    DeletionPolicy: Delete
     Properties:
       DBSubnetGroupName: !Ref DatbaseSubnetGroup
       DBClusterParameterGroupName: default.aurora5.6
@@ -154,6 +155,20 @@ Resources:
       DBSubnetGroupDescription: Demo subnets
       SubnetIds: !Ref PublicSubnetIds
 
+  DatabaseSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: rds-db-credentials/demo
+      SecretString: !Sub |
+        {
+          "username": "demo",
+          "password": "network1",
+          "engine": "mysql",
+          "host": "${DatabaseCluster.Endpoint.Address}",
+          "port": 3306,
+          "dbClusterIdentifier": "${DatabaseCluster}"
+        }
+
 Outputs:
 
   SshCommand:
@@ -163,3 +178,8 @@ Outputs:
   MysqlCommand:
     Description: Run this command to demonstrate MySQL
     Value: !Sub mysql -h ${DatabaseCluster.Endpoint.Address} -u demo -pnetwork1
+
+  DataApiCommnd:
+    Description: Run this command to demonstrate RDS Data API
+    Value: !Sub |
+      aws rds-data execute-statement --resource-arn "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${DatabaseCluster}" --database "demo" --secret-arn "${DatabaseSecret}" --sql "select * from information_schema.tables;"
