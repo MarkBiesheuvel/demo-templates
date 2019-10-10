@@ -1,0 +1,179 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Web application with instances in the private subnets and load balancer in public subnets
+
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+Mappings:
+
+  RegionMap:
+    us-east-1:
+      AmiId: ami-0080e4c5bc078760e
+    us-west-2:
+      AmiId: ami-01e24be29428c15b2
+    us-west-1:
+      AmiId: ami-0ec6517f6edbf8044
+    eu-west-1:
+      AmiId: ami-08935252a36e25f85
+    eu-west-2:
+      AmiId: ami-01419b804382064e4
+    eu-west-3:
+      AmiId: ami-0dd7e7ed60da8fb83
+    eu-central-1:
+      AmiId: ami-0cfbf4f6db41068ac
+    eu-north-1:
+      AmiId: ami-86fe70f8
+    ap-northeast-1:
+      AmiId: ami-00a5245b4816c38e6
+    ap-northeast-2:
+      AmiId: ami-00dc207f8ba6dc919
+    ap-northeast-3:
+      AmiId: ami-0b65f69a5c11f3522
+    ap-southeast-1:
+      AmiId: ami-05b3bcf7f311194b3
+    ap-southeast-2:
+      AmiId: ami-02fd0b06f06d93dfc
+    ap-south-1:
+      AmiId: ami-0ad42f4f66f6c1cc9
+    us-east-2:
+      AmiId: ami-0cd3dfa4e37921605
+    ca-central-1:
+      AmiId: ami-07423fb63ea0a0930
+    sa-east-1:
+      AmiId: ami-05145e0b28ad8e0b2
+    cn-north-1:
+      AmiId: ami-053617c9d818c1189
+    cn-northwest-1:
+      AmiId: ami-0f7937761741dc640
+
+Resources:
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: ec2.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+
+  SecurityGroupInstance:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Access from load balancer to instances
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !GetAtt SecurityGroupLoadBalancer.GroupId
+
+  SecurityGroupLoadBalancer:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access from everywhere to load balancer
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      InstanceMonitoring: True
+      InstanceType: t3.nano
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroups:
+        - !Ref SecurityGroupInstance
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref AWS::Region
+        - AmiId
+      UserData: !Base64 |
+        #!/bin/sh
+        yum update -y
+        yum install -y httpd
+        availability_zone=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
+        instance_id=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+        echo "<html><body><h1>$instance_id</h1><p>$availability_zone</p></body></html>" > /var/www/html/index.html
+        service httpd start
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: 2
+      MaxSize: 3
+      Cooldown: 0
+      HealthCheckGracePeriod: 60
+      HealthCheckType: ELB
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      VPCZoneIdentifier: !Ref PrivateSubnetIds
+      TargetGroupARNs:
+        - !Ref TargetGroup
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: 2
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: True
+      HealthCheckIntervalSeconds: 5
+      HealthCheckTimeoutSeconds: 4
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetGroupAttributes:
+        -
+          Key: deregistration_delay.timeout_seconds
+          Value: 20
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: internet-facing
+      IpAddressType: ipv4
+      Subnets: !Ref PublicSubnetIds
+      SecurityGroups:
+        - !Ref SecurityGroupLoadBalancer
+
+  ListenerApi:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        -
+          Type: forward
+          TargetGroupArn: !Ref TargetGroup
