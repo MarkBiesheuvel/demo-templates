@@ -1,7 +1,6 @@
-Demo: VPC configurations
-==
+# Demos using AWS CloudFormation
 
-The goal of this project is to be able to quickly create different types of VPCs for the purpose of demos.
+The goal of this project is to be able to quickly and consistently create different demo environments.
 
 - [Multi-AZ VPC with public and private subnets](multi-az-public-private-vpc)
 - [VPC Interface/Gateway Endpoint](vpc-endpoints)
