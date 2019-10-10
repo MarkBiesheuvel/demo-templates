@@ -1,5 +1,4 @@
-Multi-AZ VPC with public and private subnets
-==
+# Multi-AZ VPC with public and private subnets
 
 This is a typical configuration with public and private subnets.
 

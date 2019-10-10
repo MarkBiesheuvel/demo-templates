@@ -1,0 +1,165 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: EC2 instance with SSH and Session Manager + RDS database with MySQL and rds-data API
+
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+
+Mappings:
+
+  RegionMap:
+    us-east-1:
+      AmiId: ami-0080e4c5bc078760e
+    us-west-2:
+      AmiId: ami-01e24be29428c15b2
+    us-west-1:
+      AmiId: ami-0ec6517f6edbf8044
+    eu-west-1:
+      AmiId: ami-08935252a36e25f85
+    eu-west-2:
+      AmiId: ami-01419b804382064e4
+    eu-west-3:
+      AmiId: ami-0dd7e7ed60da8fb83
+    eu-central-1:
+      AmiId: ami-0cfbf4f6db41068ac
+    eu-north-1:
+      AmiId: ami-86fe70f8
+    ap-northeast-1:
+      AmiId: ami-00a5245b4816c38e6
+    ap-northeast-2:
+      AmiId: ami-00dc207f8ba6dc919
+    ap-northeast-3:
+      AmiId: ami-0b65f69a5c11f3522
+    ap-southeast-1:
+      AmiId: ami-05b3bcf7f311194b3
+    ap-southeast-2:
+      AmiId: ami-02fd0b06f06d93dfc
+    ap-south-1:
+      AmiId: ami-0ad42f4f66f6c1cc9
+    us-east-2:
+      AmiId: ami-0cd3dfa4e37921605
+    ca-central-1:
+      AmiId: ami-07423fb63ea0a0930
+    sa-east-1:
+      AmiId: ami-05145e0b28ad8e0b2
+    cn-north-1:
+      AmiId: ami-053617c9d818c1189
+    cn-northwest-1:
+      AmiId: ami-0f7937761741dc640
+
+Resources:
+
+  SecurityGroupInstance:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH from anywhere
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  SecurityGroupDatabase:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Access from EC2 instance to Database
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !GetAtt SecurityGroupInstance.GroupId
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref AWS::Region
+        - AmiId
+      NetworkInterfaces:
+        -
+          DeviceIndex: 0
+          AssociatePublicIpAddress: True
+          SubnetId: !Select
+            - 0
+            - !Ref PublicSubnetIds
+          GroupSet:
+            - !Ref SecurityGroupInstance
+      UserData: !Base64 |
+        #!/bin/bash -xe
+        yum update -y
+        yum install -y mysql
+      Tags:
+        -
+          Key: Name
+          Value: demo
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: ec2.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonRDSDataFullAccess
+
+  DatabaseCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBSubnetGroupName: !Ref DatbaseSubnetGroup
+      DBClusterParameterGroupName: default.aurora5.6
+      Engine: aurora
+      EngineMode: serverless
+      EngineVersion: 5.6.10a
+      MasterUsername: demo
+      MasterUserPassword: network1
+      DatabaseName: demo
+      Port: 3306
+      VpcSecurityGroupIds:
+        - !Ref SecurityGroupDatabase
+
+  DatbaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Demo subnets
+      SubnetIds: !Ref PublicSubnetIds
+
+Outputs:
+
+  SshCommand:
+    Description: Run this command to demonstrate SSH
+    Value: !Sub ssh ec2-user@${Instance.PublicIp}
+
+  MysqlCommand:
+    Description: Run this command to demonstrate MySQL
+    Value: !Sub mysql -h ${DatabaseCluster.Endpoint.Address} -u demo -pnetwork1

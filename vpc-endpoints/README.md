@@ -1,5 +1,4 @@
-VPC endpoints
-==
+# VPC endpoints
 
 This is to demonstrate the use of VPC endpoints. This VPC does not contain any internet gateway or nat gateway. It is possible to use Session Manager to login to the machine as this makes use of the VPC endpoints.
 
