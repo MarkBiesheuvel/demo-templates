@@ -14,6 +14,20 @@ Parameters:
   PrivateSubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
+  InstanceType:
+    Type: String
+    Default: t3.nano
+    AllowedValues:
+      - t3.nano
+      - t3.micro
+      - t3.small
+
+  DesiredCapacity:
+    Type: Number
+    Default: 2
+    MinValue: 2
+    MaxValue: 10
+
 Mappings:
 
   RegionMap:
@@ -77,7 +91,7 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 
   SecurityGroupInstance:
     Type: AWS::EC2::SecurityGroup
@@ -107,7 +121,7 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       InstanceMonitoring: True
-      InstanceType: t3.nano
+      InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
       SecurityGroups:
         - !Ref SecurityGroupInstance
@@ -127,8 +141,8 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      MinSize: 2
-      MaxSize: 3
+      MinSize: !Ref DesiredCapacity
+      MaxSize: 12
       Cooldown: 0
       HealthCheckGracePeriod: 60
       HealthCheckType: ELB
@@ -136,10 +150,15 @@ Resources:
       VPCZoneIdentifier: !Ref PrivateSubnetIds
       TargetGroupARNs:
         - !Ref TargetGroup
+      Tags:
+        -
+          Key: Name
+          Value: !Ref AWS::StackName
+          PropagateAtLaunch: True
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        MaxBatchSize: 1
-        MinInstancesInService: 2
+        MaxBatchSize: 2
+        MinInstancesInService: !Ref DesiredCapacity
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
