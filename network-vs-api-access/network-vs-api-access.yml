@@ -146,6 +146,7 @@ Resources:
       MasterUserPassword: network1
       DatabaseName: demo
       Port: 3306
+      EnableHttpEndpoint: True
       VpcSecurityGroupIds:
         - !Ref SecurityGroupDatabase
 
