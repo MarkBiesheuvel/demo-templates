@@ -2,7 +2,7 @@
 
 This demo shows a web application which is load balanced across multiple instance and thus multiple availability zones.
 
-To run this demo you will need public and private subnets in multiple availability zones. For example, using the [Multi-AZ VPC with public and private subnets](multi-az-public-private-vpc) demo.
+To run this demo you will need public and private subnets in multiple availability zones. For example, using the [Multi-AZ VPC with public and private subnets](../multi-az-public-private-vpc) demo.
 
 When the web application is running you can navigate to the load balancer DNS name to show different instances responding to the requests.
 
