@@ -15,7 +15,8 @@ except OSError:
 
 class SourceVpc(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs):
+    def __init__(self, scope: core.Construct, id: str, *,
+            endpoint_service: ec2.CfnVPCEndpoint, **kwargs):
         super().__init__(scope, id, **kwargs)
 
         vpc = ec2.Vpc(self, 'Vpc',
@@ -41,6 +42,43 @@ class SourceVpc(core.Construct):
               generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
             ),
         )
+
+        sg = ec2.SecurityGroup(self, 'EndpointSecurityGroup',
+            vpc=vpc,
+        )
+        sg.add_ingress_rule(
+            ec2.Peer.ipv4('0.0.0.0/0'),
+            ec2.Port.tcp(80)
+        )
+
+        # ! Python substitution within CDK substitution within CloudFormation substitution !
+        # First, python replace {endpoint_id} with the value of the logical_id property
+        # The value of this property is like "${Token[PrivateLinkDemo...]}"
+        # At `cdk synth` this will resolve to the logical ID in the output CloudFormation template
+        # Lastly, CloudFormation will perform an Fn::Sub
+        service_name = core.Fn.sub('com.amazonaws.vpce.${{AWS::Region}}.${{{endpoint_id}}}'.format(
+            endpoint_id=endpoint_service.logical_id
+        ))
+
+        # TODO: replace by CDK construct when available
+        endpoint = ec2.CfnVPCEndpoint(self, 'Endpoint',
+            service_name=service_name,
+            vpc_endpoint_type='Interface', # ec2.VpcEndpointType.INTERFACE
+            vpc_id=vpc.vpc_id,
+            security_group_ids=[
+                sg.security_group_id,
+            ],
+            subnet_ids=[
+                subnet.subnet_id
+                for subnet in vpc.private_subnets
+            ],
+        )
+
+        # TODO: make an output with a curl command
+        # core.CfnOutput(self, 'Command',
+        #     value=core.Fn.get_att(DnsEntries),
+        # )
+
 
 class DestinationVpc(core.Construct):
 
@@ -102,14 +140,21 @@ class DestinationVpc(core.Construct):
             targets=[asg],
         )
 
+        # TODO: replace by CDK construct when available
+        service = ec2.CfnVPCEndpointService(self, 'Service',
+            network_load_balancer_arns=[nlb.load_balancer_arn],
+            acceptance_required=False,
+        )
+        self.endpoint_service = service
+
 
 class PrivateLinkStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        SourceVpc(self, 'Source')
-        DestinationVpc(self, 'Destination')
+        destination = DestinationVpc(self, 'Destination')
+        source = SourceVpc(self, 'Source', endpoint_service=destination.endpoint_service)
 
 
 app = core.App()
