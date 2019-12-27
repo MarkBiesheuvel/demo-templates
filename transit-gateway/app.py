@@ -22,7 +22,7 @@ class TransitMemberVpc(core.Construct):
 
         vpc = ec2.Vpc(self, 'Vpc',
             cidr=cidr_range,
-            max_azs=1,
+            max_azs=2,
         )
 
         sg = ec2.SecurityGroup(self, 'InstanceSecurityGroup',
@@ -90,7 +90,7 @@ class TransitGatewayStack(core.Stack):
         )
 
         member_vpcs = [
-            TransitMemberVpc(self, 'Vpc{}'.format(i + 1),
+            TransitMemberVpc(self, 'Member{}'.format(i + 1),
                 cidr_range=cidr_range,
                 transit_gateway=tg,
                 role=role,
@@ -99,7 +99,6 @@ class TransitGatewayStack(core.Stack):
         ]
 
 
-# Use the command `cdk deploy "*"` to deploy all stacks
 app = core.App()
 
 transit_stack = TransitGatewayStack(app, 'TransitGatewayDemo', cidr_ranges=[
