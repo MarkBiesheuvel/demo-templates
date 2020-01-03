@@ -3,6 +3,41 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Description: Web application with instances in the private subnets and load balancer in public subnets
 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      VpcId:
+        default: 'Which Virtual Private Network to use?'
+      PublicSubnetIds:
+        default: 'Where to create the Application Load Balancer?'
+      PrivateSubnetIds:
+        default: 'Where to launch the EC2 instances?'
+      InstanceType:
+        default: 'Which EC2 instance type to use?'
+      DesiredCapacity:
+        default: 'How many EC2 instances to create?'
+      HostedZoneName:
+        default: 'Which domain name to use? (optional)'
+    ParameterGroups:
+      -
+        Label:
+          default: 'Network Configuration'
+        Parameters:
+          - VpcId
+          - PublicSubnetIds
+          - PrivateSubnetIds
+      -
+        Label:
+          default: 'Instance Configuration'
+        Parameters:
+          - InstanceType
+          - DesiredCapacity
+      -
+        Label:
+          default: 'DNS Configuration'
+        Parameters:
+          - HostedZoneName
+
 Parameters:
 
   VpcId:
