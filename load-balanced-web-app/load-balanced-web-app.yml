@@ -28,6 +28,13 @@ Parameters:
     MinValue: 2
     MaxValue: 10
 
+  HostedZoneName:
+    Type: String # AWS::Route53::HostedZone::Id
+
+Conditions:
+  CreateDnsRecord:
+    !Not [!Equals [!Ref 'HostedZoneName', '']]
+
 Mappings:
 
   RegionMap:
@@ -196,3 +203,15 @@ Resources:
         -
           Type: forward
           TargetGroupArn: !Ref TargetGroup
+
+  DnsRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateDnsRecord
+    Properties:
+      Type: A
+      HostedZoneName: !Ref HostedZoneName
+      Name: !Sub '${AWS::StackName}.${HostedZoneName}'
+      AliasTarget:
+        DNSName: !GetAtt LoadBalancer.DNSName
+        HostedZoneId:  !GetAtt LoadBalancer.CanonicalHostedZoneID
+        EvaluateTargetHealth: True
