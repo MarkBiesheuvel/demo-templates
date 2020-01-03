@@ -16,8 +16,12 @@ Metadata:
         default: 'Which EC2 instance type to use?'
       DesiredCapacity:
         default: 'How many EC2 instances to create?'
+      CertificateArn:
+        default: 'Which certificate to use for HTTPS?'
+      CreateRedirect:
+        default: 'Add redirect from HTTP to HTTPS?'
       HostedZoneName:
-        default: 'Which domain name to use? (optional)'
+        default: 'Which domain name to use for DNS?'
     ParameterGroups:
       -
         Label:
@@ -34,8 +38,10 @@ Metadata:
           - DesiredCapacity
       -
         Label:
-          default: 'DNS Configuration'
+          default: 'Optional Configuration'
         Parameters:
+          - CertificateArn
+          - CreateRedirect
           - HostedZoneName
 
 Parameters:
@@ -63,10 +69,26 @@ Parameters:
     MinValue: 2
     MaxValue: 10
 
+  CertificateArn:
+    Type: String
+
+  CreateRedirect:
+    Type: String
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+    Default: 'No'
+
   HostedZoneName:
     Type: String # AWS::Route53::HostedZone::Id
 
 Conditions:
+  CreatePlainTextListener:
+    !Equals [!Ref 'CertificateArn', '']
+  CreateSecureListener:
+    !Not [!Equals [!Ref 'CertificateArn', '']]
+  CreateRedirectListener:
+    !And [!Equals [!Ref 'CreateRedirect', 'Yes'] , !Not [!Equals [!Ref 'CertificateArn', '']]]
   CreateDnsRecord:
     !Not [!Equals [!Ref 'HostedZoneName', '']]
 
@@ -158,6 +180,11 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+        -
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
 
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -228,12 +255,44 @@ Resources:
       SecurityGroups:
         - !Ref SecurityGroupLoadBalancer
 
-  ListenerApi:
+  PlainTextListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: CreatePlainTextListener
     Properties:
       LoadBalancerArn: !Ref LoadBalancer
       Port: 80
       Protocol: HTTP
+      DefaultActions:
+        -
+          Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  Redirectlistener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: CreateRedirectListener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        -
+          Type: redirect
+          RedirectConfig:
+            Port: 443
+            Protocol: HTTPS
+            StatusCode: HTTP_302
+
+  SecureListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: CreateSecureListener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
+      Certificates:
+        -
+          CertificateArn: !Ref CertificateArn
       DefaultActions:
         -
           Type: forward
