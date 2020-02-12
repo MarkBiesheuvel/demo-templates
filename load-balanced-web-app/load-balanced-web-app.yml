@@ -41,7 +41,6 @@ Metadata:
           default: 'Optional Configuration'
         Parameters:
           - CertificateArn
-          - CreateRedirect
           - HostedZoneName
 
 Parameters:
@@ -72,13 +71,6 @@ Parameters:
   CertificateArn:
     Type: String
 
-  CreateRedirect:
-    Type: String
-    AllowedValues:
-      - 'Yes'
-      - 'No'
-    Default: 'No'
-
   HostedZoneName:
     Type: String # AWS::Route53::HostedZone::Id
 
@@ -87,8 +79,6 @@ Conditions:
     !Equals [!Ref 'CertificateArn', '']
   CreateSecureListener:
     !Not [!Equals [!Ref 'CertificateArn', '']]
-  CreateRedirectListener:
-    !And [!Equals [!Ref 'CreateRedirect', 'Yes'] , !Not [!Equals [!Ref 'CertificateArn', '']]]
   CreateDnsRecord:
     !Not [!Equals [!Ref 'HostedZoneName', '']]
 
@@ -257,30 +247,23 @@ Resources:
 
   PlainTextListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
-    Condition: CreatePlainTextListener
     Properties:
       LoadBalancerArn: !Ref LoadBalancer
       Port: 80
       Protocol: HTTP
       DefaultActions:
         -
-          Type: forward
-          TargetGroupArn: !Ref TargetGroup
-
-  Redirectlistener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Condition: CreateRedirectListener
-    Properties:
-      LoadBalancerArn: !Ref LoadBalancer
-      Port: 80
-      Protocol: HTTP
-      DefaultActions:
-        -
-          Type: redirect
-          RedirectConfig:
-            Port: 443
-            Protocol: HTTPS
-            StatusCode: HTTP_302
+          !If
+            - CreatePlainTextListener
+            -
+              Type: forward
+              TargetGroupArn: !Ref TargetGroup
+            -
+              Type: redirect
+              RedirectConfig:
+                Port: 443
+                Protocol: HTTPS
+                StatusCode: HTTP_302
 
   SecureListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
