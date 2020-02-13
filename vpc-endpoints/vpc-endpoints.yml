@@ -9,47 +9,9 @@ Parameters:
     Type: String
     Default: 10.11.12.0/24
 
-Mappings:
-
-  RegionMap:
-    us-east-1:
-      AmiId: ami-0080e4c5bc078760e
-    us-west-2:
-      AmiId: ami-01e24be29428c15b2
-    us-west-1:
-      AmiId: ami-0ec6517f6edbf8044
-    eu-west-1:
-      AmiId: ami-08935252a36e25f85
-    eu-west-2:
-      AmiId: ami-01419b804382064e4
-    eu-west-3:
-      AmiId: ami-0dd7e7ed60da8fb83
-    eu-central-1:
-      AmiId: ami-0cfbf4f6db41068ac
-    eu-north-1:
-      AmiId: ami-86fe70f8
-    ap-northeast-1:
-      AmiId: ami-00a5245b4816c38e6
-    ap-northeast-2:
-      AmiId: ami-00dc207f8ba6dc919
-    ap-northeast-3:
-      AmiId: ami-0b65f69a5c11f3522
-    ap-southeast-1:
-      AmiId: ami-05b3bcf7f311194b3
-    ap-southeast-2:
-      AmiId: ami-02fd0b06f06d93dfc
-    ap-south-1:
-      AmiId: ami-0ad42f4f66f6c1cc9
-    us-east-2:
-      AmiId: ami-0cd3dfa4e37921605
-    ca-central-1:
-      AmiId: ami-07423fb63ea0a0930
-    sa-east-1:
-      AmiId: ami-05145e0b28ad8e0b2
-    cn-north-1:
-      AmiId: ami-053617c9d818c1189
-    cn-northwest-1:
-      AmiId: ami-0f7937761741dc640
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 
 Resources:
 
@@ -148,10 +110,7 @@ Resources:
       InstanceType: t3.micro
       IamInstanceProfile: !Ref InstanceProfile
       SubnetId: !Ref Subnet
-      ImageId: !FindInMap
-        - RegionMap
-        - !Ref AWS::Region
-        - AmiId
+      ImageId: !Ref ImageId
       UserData:
         Fn::Base64: !Sub |
             #!/bin/bash -xe
