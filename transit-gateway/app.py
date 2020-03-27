@@ -23,6 +23,7 @@ class TransitMemberVpc(core.Construct):
         vpc = ec2.Vpc(self, 'Vpc',
             cidr=cidr_range,
             max_azs=2,
+            nat_gateways=1,
         )
 
         sg = ec2.SecurityGroup(self, 'InstanceSecurityGroup',

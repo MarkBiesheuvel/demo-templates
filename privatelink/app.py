@@ -22,6 +22,7 @@ class SourceVpc(core.Construct):
         vpc = ec2.Vpc(self, 'Vpc',
             cidr='192.168.0.0/16',
             max_azs=2,
+            nat_gateways=1,
         )
 
         role = iam.Role(self, 'Ec2SsmRole',
@@ -88,6 +89,7 @@ class DestinationVpc(core.Construct):
         vpc = ec2.Vpc(self, 'Vpc',
             cidr='172.16.0.0/16',
             max_azs=2,
+            nat_gateways=1,
         )
 
         user_data = ec2.UserData.for_linux()
