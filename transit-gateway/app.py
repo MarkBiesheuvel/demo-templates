@@ -63,11 +63,12 @@ class TransitMemberVpc(core.Construct):
 
         for i, subnet in enumerate(vpc.private_subnets):
             # TODO: replace by CDK construct when available
-            ec2.CfnRoute(self, 'TransitGatewayRoute{}'.format(i),
+            route = ec2.CfnRoute(self, 'TransitGatewayRoute{}'.format(i),
                 route_table_id=subnet.route_table.route_table_id,
                 transit_gateway_id=transit_gateway.ref,
                 destination_cidr_block='10.0.0.0/8'
             )
+            route.node.add_dependency(attachment)
 
 
 class TransitGatewayStack(core.Stack):
