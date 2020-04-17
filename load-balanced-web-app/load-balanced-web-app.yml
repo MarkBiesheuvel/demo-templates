@@ -71,15 +71,17 @@ Parameters:
 
   DesiredCapacity:
     Type: Number
-    Default: 2
+    Default: 4
     MinValue: 2
     MaxValue: 10
 
   CertificateArn:
     Type: String
+    Default: ''
 
   HostedZoneName:
     Type: String # AWS::Route53::HostedZone::Id
+    Default: ''
 
 Conditions:
   CreatePlainTextListener:

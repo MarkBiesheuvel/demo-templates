@@ -114,7 +114,6 @@ class DestinationVpc(core.Construct):
               generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
             ),
             min_capacity=4,
-            desired_capacity=4,
             max_capacity=4,
             update_type=autoscaling.UpdateType.ROLLING_UPDATE,
         )

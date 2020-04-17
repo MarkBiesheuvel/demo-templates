@@ -257,3 +257,14 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${AWS::StackName}-private-subnet-3
+
+Outputs:
+
+  VpcId:
+    Value: !Ref Vpc
+
+  PublicSubnetIds:
+    Value: !Sub ${PublicSubnet1},${PublicSubnet2},${PublicSubnet3}
+
+  PrivateSubnetIds:
+    Value: !Sub ${PrivateSubnet1},${PrivateSubnet2},${PrivateSubnet3}
