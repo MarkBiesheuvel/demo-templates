@@ -1,0 +1,5 @@
+aws-cdk.aws-ec2
+aws-cdk.aws-iam
+aws-cdk.aws-neptune
+aws-cdk.aws-s3-assets
+aws-cdk.core
