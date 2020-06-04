@@ -1,5 +1,6 @@
 #!/user/bin/env python3
-from aws_cdk import (core,
+from aws_cdk import (
+    core,
     aws_autoscaling as autoscaling,
     aws_ec2 as ec2,
     aws_iam as iam,
@@ -12,12 +13,14 @@ class CloudwatchAgentStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        vpc = ec2.Vpc(self, 'Vpc',
+        vpc = ec2.Vpc(
+            self, 'Vpc',
             cidr='10.0.0.0/24',
             max_azs=1,
         )
 
-        role = iam.Role(self, 'Ec2Role',
+        role = iam.Role(
+            self, 'Ec2Role',
             assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMManagedInstanceCore'),
@@ -25,7 +28,8 @@ class CloudwatchAgentStack(core.Stack):
             ],
         )
 
-        awslogs_config = s3_assets.Asset(self, 'AwslogsConfig',
+        awslogs_config = s3_assets.Asset(
+            self, 'AwslogsConfig',
             path='./files/awslogs.conf',
             readers=[role],
         )
@@ -46,7 +50,8 @@ class CloudwatchAgentStack(core.Stack):
         )
 
         # Using an autoscaling group to utilize the rolling update
-        autoscaling.AutoScalingGroup(self, 'Instance',
+        autoscaling.AutoScalingGroup(
+            self, 'Instance',
             role=role,
             vpc=vpc,
             user_data=user_data,

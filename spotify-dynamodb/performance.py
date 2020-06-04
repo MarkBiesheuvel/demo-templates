@@ -11,6 +11,7 @@ indices = {
     'Year': 'Year-Song-index',
 }
 
+
 def performance(method):
     def wrapped(*args, **kw):
         start_time = time()
@@ -25,6 +26,7 @@ def performance(method):
         return response.get('LastEvaluatedKey')
 
     return wrapped
+
 
 @performance
 def scan(attribute, value, last_key=None):
@@ -41,6 +43,7 @@ def scan(attribute, value, last_key=None):
         kwargs['ExclusiveStartKey'] = last_key
 
     return table.scan(**kwargs)
+
 
 @performance
 def query(attribute, value, index_name, last_key=None):
@@ -61,6 +64,7 @@ def query(attribute, value, index_name, last_key=None):
 
     return table.query(**kwargs)
 
+
 def scan_iterator(attribute, value):
     print(' == Performing a SCAN operation ==')
     print('')
@@ -70,6 +74,7 @@ def scan_iterator(attribute, value):
         if last_key is None:
             break
 
+
 def query_iterator(attribute, value, index_name):
     print(' == Performing a QUERY operation ==')
     print('')
@@ -78,6 +83,7 @@ def query_iterator(attribute, value, index_name):
         last_key = query(attribute, value, index_name, last_key)
         if last_key is None:
             break
+
 
 if __name__ == '__main__':
     attribute = argv[1] if len(argv) >= 2 else 'Year'

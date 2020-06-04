@@ -1,5 +1,6 @@
 #!/user/bin/env python3
-from aws_cdk import (core,
+from aws_cdk import (
+    core,
     aws_autoscaling as autoscaling,
     aws_ec2 as ec2,
     aws_elasticloadbalancingv2 as elbv2,
@@ -15,24 +16,26 @@ except OSError:
 
 class SourceVpc(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, *,
-            endpoint_service: ec2.CfnVPCEndpoint, **kwargs):
+    def __init__(self, scope: core.Construct, id: str, *, endpoint_service: ec2.CfnVPCEndpoint, **kwargs):
         super().__init__(scope, id, **kwargs)
 
-        vpc = ec2.Vpc(self, 'Vpc',
+        vpc = ec2.Vpc(
+            self, 'Vpc',
             cidr='192.168.0.0/16',
             max_azs=2,
             nat_gateways=1,
         )
 
-        role = iam.Role(self, 'Ec2SsmRole',
+        role = iam.Role(
+            self, 'Ec2SsmRole',
             assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMManagedInstanceCore')
             ],
         )
 
-        ec2.Instance(self, 'Instance',
+        ec2.Instance(
+            self, 'Instance',
             role=role,
             vpc=vpc,
             instance_type=ec2.InstanceType.of(
@@ -44,7 +47,8 @@ class SourceVpc(core.Construct):
             ),
         )
 
-        sg = ec2.SecurityGroup(self, 'EndpointSecurityGroup',
+        sg = ec2.SecurityGroup(
+            self, 'EndpointSecurityGroup',
             vpc=vpc,
         )
         sg.add_ingress_rule(
@@ -62,9 +66,10 @@ class SourceVpc(core.Construct):
         ))
 
         # TODO: replace by CDK construct when available
-        endpoint = ec2.CfnVPCEndpoint(self, 'Endpoint',
+        ec2.CfnVPCEndpoint(
+            self, 'Endpoint',
             service_name=service_name,
-            vpc_endpoint_type='Interface', # ec2.VpcEndpointType.INTERFACE
+            vpc_endpoint_type='Interface',  # ec2.VpcEndpointType.INTERFACE
             vpc_id=vpc.vpc_id,
             security_group_ids=[
                 sg.security_group_id,
@@ -86,7 +91,8 @@ class DestinationVpc(core.Construct):
     def __init__(self, scope: core.Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
 
-        vpc = ec2.Vpc(self, 'Vpc',
+        vpc = ec2.Vpc(
+            self, 'Vpc',
             cidr='172.16.0.0/16',
             max_azs=2,
             nat_gateways=1,
@@ -95,14 +101,16 @@ class DestinationVpc(core.Construct):
         user_data = ec2.UserData.for_linux()
         user_data.add_commands(raw_user_data)
 
-        role = iam.Role(self, 'Ec2SsmRole',
+        role = iam.Role(
+            self, 'Ec2SsmRole',
             assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('AmazonSSMManagedInstanceCore')
             ],
         )
 
-        asg = autoscaling.AutoScalingGroup(self, 'ASG',
+        asg = autoscaling.AutoScalingGroup(
+            self, 'ASG',
             role=role,
             vpc=vpc,
             user_data=user_data,
@@ -125,24 +133,28 @@ class DestinationVpc(core.Construct):
         #   target_requests_per_second=1
         # )
 
-        nlb = elbv2.NetworkLoadBalancer (self, 'NLB',
+        nlb = elbv2.NetworkLoadBalancer(
+            self, 'NLB',
             vpc=vpc,
             internet_facing=False,
             cross_zone_enabled=True,
         )
 
-        listener = nlb.add_listener('Listener',
+        listener = nlb.add_listener(
+            'Listener',
             port=80,
         )
 
-        target_group = listener.add_targets('Target',
+        listener.add_targets(
+            'Target',
             port=80,
             deregistration_delay=core.Duration.seconds(10),
             targets=[asg],
         )
 
         # TODO: replace by CDK construct when available
-        service = ec2.CfnVPCEndpointService(self, 'Service',
+        service = ec2.CfnVPCEndpointService(
+            self, 'Service',
             network_load_balancer_arns=[nlb.load_balancer_arn],
             acceptance_required=False,
         )
@@ -155,7 +167,7 @@ class PrivateLinkStack(core.Stack):
         super().__init__(scope, id, **kwargs)
 
         destination = DestinationVpc(self, 'Destination')
-        source = SourceVpc(self, 'Source', endpoint_service=destination.endpoint_service)
+        SourceVpc(self, 'Source', endpoint_service=destination.endpoint_service)
 
 
 app = core.App()
