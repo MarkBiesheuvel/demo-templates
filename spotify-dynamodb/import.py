@@ -91,6 +91,11 @@ def get_playlist(authorization, playlist_id):
 
     for item in body['items']:
         track = item['track']
+
+        # Skip empty tracks
+        if track is None:
+            continue
+
         album = track['album']
         for artist in track['artists']:
             record = {

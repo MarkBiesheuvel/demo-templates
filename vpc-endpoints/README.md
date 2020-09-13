@@ -1,8 +1,8 @@
 # VPC endpoints
 
-This is to demonstrate the use of VPC endpoints. This VPC does not contain any internet gateway or nat gateway. It is possible to use Session Manager to login to the machine as this makes use of the VPC endpoints.
+This is to demonstrate the use of VPC endpoints. This VPC does not contain any internet gateway or NAT gateway. It is still possible to use Session Manager to login to the machine since the Session Manager agent will make use of the VPC endpoints.
 
-Run commands such as these to demonstrate the difference between an interface endpoint (ssm), a gateway endpoint (s3) and no endpoint (kms).
+Run these commands to demonstrate the difference between an interface endpoint (like SSM), a gateway endpoint (like S3) and no endpoint (like KMS).
 
 ```bash
 dig ssm.eu-central-1.amazonaws.com

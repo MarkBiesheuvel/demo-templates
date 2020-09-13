@@ -1,0 +1,58 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: A DynamoDB to store songs
+
+Resources:
+
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Music # Hardcoded name
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        -
+          AttributeName: Artist
+          KeyType: HASH
+        -
+          AttributeName: Song
+          KeyType: RANGE
+      AttributeDefinitions:
+        -
+          AttributeName: Artist
+          AttributeType: S
+        -
+          AttributeName: Song
+          AttributeType: S
+        -
+          AttributeName: Year
+          AttributeType: S
+      GlobalSecondaryIndexes:
+        -
+          IndexName: Year-Song-index # Hardcoded name
+          KeySchema:
+            -
+              AttributeName: Year
+              KeyType: HASH
+            -
+              AttributeName: Song
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+        -
+          IndexName: Song-Artist-index # Hardcoded name
+          KeySchema:
+            -
+              AttributeName: Song
+              KeyType: HASH
+            -
+              AttributeName: Artist
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - Album
+              - Preview
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
