@@ -64,6 +64,9 @@ Parameters:
       - t3.nano
       - t3.micro
       - t3.small
+      - t3a.nano
+      - t3a.micro
+      - t3a.small
 
   ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
