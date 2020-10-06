@@ -107,7 +107,7 @@ Resources:
       - SsmMessagesVpcEndpoint
       - Ec2MessagesVpcEndpoint
     Properties:
-      InstanceType: t3.micro
+      InstanceType: t3a.nano
       IamInstanceProfile: !Ref InstanceProfile
       SubnetId: !Ref Subnet
       ImageId: !Ref ImageId
