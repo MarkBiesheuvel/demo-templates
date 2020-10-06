@@ -104,10 +104,13 @@ Resources:
       MasterUsername: demo
       MasterUserPassword: network1
       DatabaseName: demo
-      Port: 3306
       EnableHttpEndpoint: True
       VpcSecurityGroupIds:
         - !Ref SecurityGroupDatabase
+      ScalingConfiguration:
+        AutoPause: False # Avoid database going off before demo
+        MinCapacity: 1
+        MaxCapacity: 16
 
   DatbaseSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -142,4 +145,4 @@ Outputs:
   DataApiCommnd:
     Description: Run this command to demonstrate RDS Data API
     Value: !Sub |
-      aws rds-data execute-statement --resource-arn "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${DatabaseCluster}" --database "demo" --secret-arn "${DatabaseSecret}" --sql "select * from information_schema.tables;"
+      aws rds-data execute-statement --resource-arn "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:${DatabaseCluster}" --database "demo" --secret-arn "${DatabaseSecret}" --sql "select TABLE_SCHEMA, COUNT(1) from information_schema.tables group by TABLE_SCHEMA;"
