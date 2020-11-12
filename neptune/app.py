@@ -13,7 +13,7 @@ class Instance(core.Construct):
 
     def __init__(
             self, scope: core.Construct, id: str,
-            vpc: ec2.IVpc,
+            vpc: ec2.IVpc, cluster: neptune.CfnDBCluster,
             **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -25,23 +25,42 @@ class Instance(core.Construct):
             ],
         )
 
+        config_asset = s3_assets.Asset(
+            self, 'ConfigYaml',
+            path='./files/neptune-remote.yaml',
+            readers=[role],
+        )
+
         sg = ec2.SecurityGroup(
             self, 'SecurityGroup',
             vpc=vpc,
         )
 
-        # TODO: add this to userdata
-        # yum install java-1.8.0-devel -y
-        # wget https://archive.apache.org/dist/tinkerpop/3.4.1/apache-tinkerpop-gremlin-console-3.4.1-bin.zip
-        # unzip apache-tinkerpop-gremlin-console-3.4.1-bin.zip
-        # cd apache-tinkerpop-gremlin-console-3.4.1
-        # wget https://www.amazontrust.com/repository/SFSRootCAG2.pem
+        user_data = ec2.UserData.for_linux()
+        user_data.add_commands(
+            'yum update -y',
+            'yum install -y java-1.8.0-devel',
+            'cd ~', # Execute subsequent commands in home directory
+            'wget https://archive.apache.org/dist/tinkerpop/3.4.1/apache-tinkerpop-gremlin-console-3.4.1-bin.zip',
+            'unzip apache-tinkerpop-gremlin-console-3.4.1-bin.zip',
+            'cd apache-tinkerpop-gremlin-console-3.4.1',
+            'wget https://www.amazontrust.com/repository/SFSRootCAG2.pem',
+            'aws s3 cp s3://{bucket}/{key} conf/neptune-remote.yaml'.format(
+                bucket=config_asset.s3_bucket_name,
+                key=config_asset.s3_object_key,
+            ),
+            'sed -i "s/ENDPOINT_URL/{endpoint_url}/g" conf/neptune-remote.yaml'.format(
+                endpoint_url=cluster.endpoint,
+            ),
+            'systemctl start awslogsd',
+        )
 
         ec2.Instance(
             self, 'Instance',
             role=role,
             vpc=vpc,
             security_group=sg,
+            user_data=user_data,
             instance_type=ec2.InstanceType.of(
                 instance_class=ec2.InstanceClass.BURSTABLE3_AMD,
                 instance_size=ec2.InstanceSize.NANO,
@@ -64,7 +83,6 @@ class NeptuneCluster(core.Construct):
         super().__init__(scope, id, **kwargs)
         stack = core.Stack.of(self)
 
-        # TODO: find a way to add role to cluster
         role = iam.Role(
             self, 'NeptuneRole',
             assumed_by=iam.ServicePrincipal('rds.amazonaws.com'),
@@ -85,7 +103,12 @@ class NeptuneCluster(core.Construct):
         cluster = neptune.CfnDBCluster(
             self, 'Cluster',
             db_subnet_group_name=subnet_group.ref,
-            vpc_security_group_ids=[sg.security_group_id]
+            vpc_security_group_ids=[sg.security_group_id],
+            associated_roles=[
+                {
+                    'roleArn': role.role_arn
+                }
+            ]
         )
 
         neptune.CfnDBInstance(
@@ -123,6 +146,7 @@ class NeptuneStack(core.Stack):
         instance = Instance(
             self, 'Instance',
             vpc=vpc,
+            cluster=cluster,
         )
 
         # Allow EC2 instance connect to Neptune cluster
@@ -135,12 +159,12 @@ class NeptuneStack(core.Stack):
         vertices_asset = s3_assets.Asset(
             self, 'VerticesCsv',
             path='./files/vertices.csv',
-            readers=[instance.role, cluster.role],
+            readers=[cluster.role],
         )
         edges_asset = s3_assets.Asset(
             self, 'EdgesCsv',
             path='./files/edges.csv',
-            readers=[instance.role, cluster.role],
+            readers=[cluster.role],
         )
 
         core.CfnOutput(
@@ -181,13 +205,30 @@ class NeptuneStack(core.Stack):
 
         core.CfnOutput(
             self, 'Command3ListAllVertices',
-            value='g.V()',
+            value=':remote connect tinkerpop.server conf/neptune-remote.yaml',
         )
 
         core.CfnOutput(
-            self, 'Command4ListAllGamers',
+            self, 'Command4ListAllVertices',
+            value=':remote console',
+        )
+
+        core.CfnOutput(
+            self, 'Command5ListAllGamers',
             value='g.V().hasLabel("person")',
         )
+
+        core.CfnOutput(
+            self, 'Command6ListAllGamers',
+            value='g.V().hasLabel("game").groupCount().by("GameGenre")',
+        )
+
+        core.CfnOutput(
+            self, 'Command7ListAllGamers',
+            value='g.V().has("GamerAlias","groundWalker").as("TargetGamer").out("likes").aggregate("self").in("likes").where(neq("TargetGamer")).out("likes").where(without("self")).dedup().values("GameTitle")',
+        )
+
+
 
 
 app = core.App()
