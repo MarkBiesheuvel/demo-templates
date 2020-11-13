@@ -1,0 +1,2 @@
+amazon.ion==0.6.0
+pyqldb==3.0.0
