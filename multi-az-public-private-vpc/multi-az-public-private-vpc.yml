@@ -9,6 +9,18 @@ Parameters:
     Type: String
     Default: 10.11.12.0/24
 
+  RedundantNAT:
+    Type: String
+    Default: 'No'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+
+Conditions:
+
+  CreateRedundantNAT:
+    !Equals [!Ref 'RedundantNAT', 'Yes']
+
 Resources:
 
   Vpc:
@@ -118,11 +130,13 @@ Resources:
 
   NatIp2:
     Type: AWS::EC2::EIP
+    Condition: CreateRedundantNAT
     Properties:
       Domain: vpc
 
   NatIp3:
     Type: AWS::EC2::EIP
+    Condition: CreateRedundantNAT
     Properties:
       Domain: vpc
 
@@ -137,6 +151,7 @@ Resources:
 
   NatGateway2:
     Type: AWS::EC2::NatGateway
+    Condition: CreateRedundantNAT
     Properties:
       AllocationId: !GetAtt NatIp2.AllocationId
       SubnetId: !Ref PublicSubnet2
@@ -146,6 +161,7 @@ Resources:
 
   NatGateway3:
     Type: AWS::EC2::NatGateway
+    Condition: CreateRedundantNAT
     Properties:
       AllocationId: !GetAtt NatIp3.AllocationId
       SubnetId: !Ref PublicSubnet3
@@ -176,6 +192,7 @@ Resources:
 
   PrivateRouteTable2:
     Type: AWS::EC2::RouteTable
+    Condition: CreateRedundantNAT
     Properties:
       VpcId: !Ref Vpc
       Tags:
@@ -184,6 +201,7 @@ Resources:
 
   PrivateRoute2:
     Type: AWS::EC2::Route
+    Condition: CreateRedundantNAT
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NatGateway2
@@ -192,11 +210,16 @@ Resources:
   RouteTablePrivateSubnet2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable2
+      RouteTableId:
+        !If
+          - CreateRedundantNAT
+          - !Ref PrivateRouteTable2
+          - !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet2
 
   PrivateRouteTable3:
     Type: AWS::EC2::RouteTable
+    Condition: CreateRedundantNAT
     Properties:
       VpcId: !Ref Vpc
       Tags:
@@ -205,6 +228,7 @@ Resources:
 
   PrivateRoute3:
     Type: AWS::EC2::Route
+    Condition: CreateRedundantNAT
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NatGateway3
@@ -213,7 +237,11 @@ Resources:
   RouteTablePrivateSubnet3:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable3
+      RouteTableId:
+        !If
+          - CreateRedundantNAT
+          - !Ref PrivateRouteTable3
+          - !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet3
 
   PrivateSubnet1:
