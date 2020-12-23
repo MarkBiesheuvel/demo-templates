@@ -4,7 +4,7 @@ This is to demonstrate the use of VPC endpoints. This VPC does not contain any i
 
 Run these commands to demonstrate the difference between an interface endpoint (like SSM), a gateway endpoint (like S3) and no endpoint (like KMS).
 
-```bash
+```sh
 dig ssm.eu-central-1.amazonaws.com
 dig s3.eu-central-1.amazonaws.com
 dig kms.eu-central-1.amazonaws.com

@@ -19,6 +19,6 @@ This demo also creates a Log Subscription Filter which looks for the words `sshd
 
 You can try this out by connecting to one of the instances public IPs:
 
-```bash
+```sh
 ssh ec2-user@255.255.255.255 -i ~/.ssh/id_rsa
 ```
