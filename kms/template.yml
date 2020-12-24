@@ -1,0 +1,55 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Two KMS keys, one symmetric and one asymmetric key
+
+Resources:
+
+  SymmetricKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Symmetric key for demo
+      Enabled: True
+      EnableKeyRotation: True
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+
+  AsymmetricKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Asymmetric key for demo
+      Enabled: True
+      KeySpec: RSA_4096
+      KeyUsage: SIGN_VERIFY
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+
+  SymmetricAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/demo/symmetric_key
+      TargetKeyId: !Ref SymmetricKey
+
+  AsymmetricAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/demo/asymmetric_key
+      TargetKeyId: !Ref AsymmetricKey
