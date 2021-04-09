@@ -4,7 +4,7 @@ A walk-through of key usages with commands for a quick demo.
 
 Note that throughout the demo, we will use the `/tmp` directory, so we do not have to worry about cleaning up.
 
-TODO: Create a CloudFormation template which creates the symmetric and asymmetric CMKs.
+The keys for this demo can be create with the CloudFormation template in this directory: `template.yml`.
 
 Source: https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-compare.html
 
@@ -17,12 +17,12 @@ echo "Never gonna give you up" > /tmp/data.txt
 
 Then, we encrypt that file. By default, KMS base64 encodes the response, so we'll decode it.
 ```sh
-aws kms encrypt --key-id alias/demo/symmetric_key --plaintext fileb:///tmp/data.txt --output text --query CiphertextBlob | base64 --decode > /tmp/cipher.bin
+aws kms encrypt --key-id alias/demo/symmetric_key --plaintext fileb:///tmp/data.txt --output text --query CiphertextBlob | base64 --decode > /tmp/data.bin
 ```
 
 And to decrypt it again we make another request to KMS, again base64 decoding the response. Note that we did not need to specify the key id.
 ```sh
-aws kms decrypt --ciphertext-blob fileb:///tmp/cipher.bin --output text --query Plaintext | base64 --decode
+aws kms decrypt --ciphertext-blob fileb:///tmp/data.bin --output text --query Plaintext | base64 --decode
 ```
 
 # Generate data key
@@ -77,12 +77,12 @@ echo "Never gonna run around and desert you" > /tmp/data.txt
 
 Now that we have a message, we can sign it. Again, this is base64 encoded, so let's decode it before going further.
 ```sh
-aws kms sign --key-id alias/demo/asymmetric_key --message-type RAW --signing-algorithm RSASSA_PKCS1_V1_5_SHA_512 --message fileb:///tmp/data.txt  --output text --query Signature | base64 --decode > /tmp/signature
+aws kms sign --key-id alias/demo/asymmetric_key --message-type RAW --signing-algorithm RSASSA_PKCS1_V1_5_SHA_512 --message fileb:///tmp/data.txt  --output text --query Signature | base64 --decode > /tmp/signature.bin
 ```
 
 Lastly we'll send both the message and the signature to someone. Since the already had our public key, they can now verify that the message was definitely sent by us; as only the owners of the private key in KMS could generate a signature that matches the public key.
 ```sh
-openssl dgst -sha512 -verify /tmp/public.pem -signature /tmp/signature /tmp/message
+openssl dgst -sha512 -verify /tmp/public.pem -signature /tmp/signature.bin /tmp/data.txt
 ```
 
 Source: https://aws.amazon.com/blogs/security/how-to-verify-aws-kms-asymmetric-key-signatures-locally-with-openssl/
