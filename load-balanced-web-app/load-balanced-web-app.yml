@@ -59,18 +59,19 @@ Parameters:
 
   InstanceType:
     Type: String
-    Default: t3.nano
+    Default: t4g.nano
     AllowedValues:
-      - t3.nano
-      - t3.micro
-      - t3.small
-      - t3a.nano
-      - t3a.micro
-      - t3a.small
+      - t4g.nano
+      - t4g.micro
+      - t4g.small
+      - t4g.medium
+      - t4g.large
+      - t4g.xlarge
+      - t4g.2xlarge
 
   ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2
 
   DesiredCapacity:
     Type: Number
