@@ -115,12 +115,13 @@ class CloudwatchAgentStack(core.Stack):
             user_data=user_data,
             key_name=key_pair.value_as_string,
             instance_type=ec2.InstanceType.of(
-                instance_class=ec2.InstanceClass.BURSTABLE3_AMD,
+                instance_class=ec2.InstanceClass.BURSTABLE4_GRAVITON,
                 instance_size=ec2.InstanceSize.NANO,
             ),
             machine_image=ec2.AmazonLinuxImage(
               generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
               edition=ec2.AmazonLinuxEdition.STANDARD,
+              cpu_type=ec2.AmazonLinuxCpuType.ARM_64,
             ),
             min_capacity=3,
             max_capacity=3,
