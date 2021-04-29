@@ -1,0 +1,112 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Example security groups which are useful for ad-hoc demos
+
+Resources:
+
+  Http:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: http
+      GroupDescription: Allows inbound HTTP and HTTPS from anywhere
+      Tags:
+        -
+          Key: Name
+          Value: http
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        -
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  # To avoid violating various security guidelines by allowing SSH from anywhere, this template restricts SSH to IP
+  #  addresses from the Internet Service Provider of the author
+  #
+  # Source: https://www.nirsoft.net/countryip/nl.html
+  Ssh:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ssh
+      GroupDescription: Allows inbound SSH from T-Mobile Thuis ip addresses
+      Tags:
+        -
+          Key: Name
+          Value: ssh
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 5.132.0.0/17
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 31.20.0.0/15
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 31.187.128.0/17
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 31.201.0.0/16
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 84.241.192.0/18
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 85.144.0.0/15
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 85.146.0.0/17
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 85.146.128.0/18
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 89.205.128.0/17
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 91.141.128.0/17
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 94.157.0.0/16
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 95.98.0.0/15
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 178.224.0.0/13
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 188.88.0.0/14
