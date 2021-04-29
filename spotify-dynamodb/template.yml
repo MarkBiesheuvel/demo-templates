@@ -53,6 +53,8 @@ Resources:
             NonKeyAttributes:
               - Album
               - Preview
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
       SSESpecification:
         SSEEnabled: True
         SSEType: KMS
