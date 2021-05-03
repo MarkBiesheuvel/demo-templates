@@ -1,3 +1,5 @@
 # Nitro Enclaves ACM demo
 
-TODO
+```sh
+cdk deploy --context domain_name=demo.training
+```
