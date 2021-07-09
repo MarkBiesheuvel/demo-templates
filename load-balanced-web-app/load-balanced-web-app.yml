@@ -46,6 +46,116 @@ Metadata:
           - CertificateArn
           - HostedZoneName
 
+  AWS::CloudFormation::Designer:
+    b5a45387-1f67-4711-b56b-510e25bb91a3:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -90
+        y: 110
+      z: 1
+      embeds: []
+    59c52742-74a6-4832-9e34-d0b1da07f4b0:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -190
+        y: 310
+      z: 1
+      embeds: []
+    f1cc7a66-b7ee-4b97-8177-b9273326592e:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -190
+        y: 210
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - 59c52742-74a6-4832-9e34-d0b1da07f4b0
+    b235bd65-2f45-4024-abb3-6a280bbdf0cf:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -290
+        y: 210
+      z: 1
+      embeds: []
+    655c9a31-b3a7-4a3d-9c66-7ceecf072462:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -90
+        y: 210
+      z: 1
+      embeds: []
+    51f53c5f-b146-4e87-bded-c8dabe8bbae1:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -190
+        y: 110
+      z: 1
+      embeds: []
+    7eb05a3f-4382-45b4-ba69-c4f7316c1f4b:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 10
+        y: 310
+      z: 1
+      embeds: []
+    15ab3930-a517-4daa-9bc7-e2d8f7ec6b25:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 210
+        y: 210
+      z: 1
+      embeds: []
+    f38edc42-5f41-489d-be51-0637a927bb43:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 110
+        y: 210
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - 15ab3930-a517-4daa-9bc7-e2d8f7ec6b25
+    aeab469e-672e-4e0f-859c-cdffd6f67387:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 10
+        y: 210
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - 7eb05a3f-4382-45b4-ba69-c4f7316c1f4b
+    4f71bc18-f116-41cb-8def-9880611a4cb7:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 10
+        y: 110
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - aeab469e-672e-4e0f-859c-cdffd6f67387
+        - b5a45387-1f67-4711-b56b-510e25bb91a3
+
 Parameters:
 
   VpcId:
@@ -103,6 +213,9 @@ Resources:
       Path: /
       Roles:
         - !Ref InstanceRole
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: f38edc42-5f41-489d-be51-0637a927bb43
 
   InstanceRole:
     Type: AWS::IAM::Role
@@ -117,6 +230,9 @@ Resources:
               Service: ec2.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 15ab3930-a517-4daa-9bc7-e2d8f7ec6b25
 
   SecurityGroupInstance:
     Type: AWS::EC2::SecurityGroup
@@ -129,6 +245,9 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !GetAtt SecurityGroupLoadBalancer.GroupId
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 7eb05a3f-4382-45b4-ba69-c4f7316c1f4b
 
   SecurityGroupLoadBalancer:
     Type: AWS::EC2::SecurityGroup
@@ -146,6 +265,9 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 59c52742-74a6-4832-9e34-d0b1da07f4b0
 
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -164,6 +286,9 @@ Resources:
         instance_id=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
         echo "<html><body><h1>$instance_id</h1><p>$availability_zone</p></body></html>" > /var/www/html/index.html
         service httpd start
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: aeab469e-672e-4e0f-859c-cdffd6f67387
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -186,6 +311,9 @@ Resources:
       AutoScalingRollingUpdate:
         MaxBatchSize: 2
         MinInstancesInService: !Ref DesiredCapacity
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 4f71bc18-f116-41cb-8def-9880611a4cb7
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -202,6 +330,9 @@ Resources:
         -
           Key: deregistration_delay.timeout_seconds
           Value: 20
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: b5a45387-1f67-4711-b56b-510e25bb91a3
 
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -212,6 +343,9 @@ Resources:
       Subnets: !Ref PublicSubnetIds
       SecurityGroups:
         - !Ref SecurityGroupLoadBalancer
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: f1cc7a66-b7ee-4b97-8177-b9273326592e
 
   PlainTextListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -232,6 +366,9 @@ Resources:
                 Port: 443
                 Protocol: HTTPS
                 StatusCode: HTTP_302
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 51f53c5f-b146-4e87-bded-c8dabe8bbae1
 
   SecureListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -248,6 +385,9 @@ Resources:
         -
           Type: forward
           TargetGroupArn: !Ref TargetGroup
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 655c9a31-b3a7-4a3d-9c66-7ceecf072462
 
   DnsRecord:
     Type: AWS::Route53::RecordSet
@@ -260,3 +400,6 @@ Resources:
         DNSName: !GetAtt LoadBalancer.DNSName
         HostedZoneId:  !GetAtt LoadBalancer.CanonicalHostedZoneID
         EvaluateTargetHealth: True
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: b235bd65-2f45-4024-abb3-6a280bbdf0cf
