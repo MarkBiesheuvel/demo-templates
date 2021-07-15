@@ -2,16 +2,21 @@
 
 This is to demonstrate the use of VPC endpoints. This VPC does not contain any internet gateway or NAT gateway. It is still possible to use Session Manager to login to the machine since the Session Manager agent will make use of the VPC endpoints.
 
-Run these commands to demonstrate the difference between an interface endpoint (like SSM), a gateway endpoint (like S3) and no endpoint (like KMS).
+Run these commands to demonstrate the difference between an interface endpoint (like SSM), a gateway endpoint (like DynamoDB) and no endpoint (like KMS).
 
 ```sh
-dig ssm.eu-central-1.amazonaws.com
-dig s3.eu-central-1.amazonaws.com
-dig kms.eu-central-1.amazonaws.com
+# Fetching current region
+REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
 
-aws ssm list-commands
-aws s3api list-buckets
+# Connecting to DynamoDB via an VPC Gateway Endpoint
+dig dynamodb.$REGION.amazonaws.com
+aws dynamodb list-tables
+
+# Other public APIs are unreachable
+dig kms.$REGION.amazonaws.com
 aws kms list-keys
-```
 
-**Note:** replace `eu-central-1` by your current region name.
+# Connecting to Systems Manager via an VPC Interface Endpoint
+dig ssm.$REGION.amazonaws.com
+aws ssm list-commands
+```
