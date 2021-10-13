@@ -1,4 +1,4 @@
 hosts: [ENDPOINT_URL]
 port: 8182
-connectionPool: { enableSsl: true, trustCertChainFile: "SFSRootCAG2.pem"}
+connectionPool: { enableSsl: true,  trustStore: /tmp/certs/cacerts }
 serializer: { className: org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0, config: { serializeResultToString: true }}

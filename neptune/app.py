@@ -13,7 +13,7 @@ class Instance(core.Construct):
 
     def __init__(
             self, scope: core.Construct, id: str,
-            vpc: ec2.IVpc, cluster: neptune.CfnDBCluster,
+            vpc: ec2.IVpc, cluster: NeptuneCluster,
             **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -40,11 +40,17 @@ class Instance(core.Construct):
         user_data.add_commands(
             'yum update -y',
             'yum install -y java-1.8.0-devel',
-            'cd ~', # Execute subsequent commands in home directory
-            'wget https://archive.apache.org/dist/tinkerpop/3.4.1/apache-tinkerpop-gremlin-console-3.4.1-bin.zip',
-            'unzip apache-tinkerpop-gremlin-console-3.4.1-bin.zip',
-            'cd apache-tinkerpop-gremlin-console-3.4.1',
-            'wget https://www.amazontrust.com/repository/SFSRootCAG2.pem',
+            'cd ~',
+            # Install the CA certificate
+            'mkdir /tmp/certs/',
+            'cp /etc/pki/java/cacerts /tmp/certs/cacerts',
+            'wget https://www.amazontrust.com/repository/SFSRootCAG2.cer',
+            'keytool -importcert -alias neptune-ca -keystore /tmp/certs/cacerts -file /root/SFSRootCAG2.cer -noprompt -storepass changeit',
+            # Download Gremlin console
+            'wget https://archive.apache.org/dist/tinkerpop/3.4.8/apache-tinkerpop-gremlin-console-3.4.8-bin.zip',
+            'unzip apache-tinkerpop-gremlin-console-3.4.8-bin.zip',
+            # Download default configuration and update endpoint url
+            'cd apache-tinkerpop-gremlin-console-3.4.8',
             'aws s3 cp s3://{bucket}/{key} conf/neptune-remote.yaml'.format(
                 bucket=config_asset.s3_bucket_name,
                 key=config_asset.s3_object_key,
@@ -52,7 +58,6 @@ class Instance(core.Construct):
             'sed -i "s/ENDPOINT_URL/{endpoint_url}/g" conf/neptune-remote.yaml'.format(
                 endpoint_url=cluster.endpoint,
             ),
-            'systemctl start awslogsd',
         )
 
         ec2.Instance(
@@ -61,6 +66,7 @@ class Instance(core.Construct):
             vpc=vpc,
             security_group=sg,
             user_data=user_data,
+            user_data_causes_replacement=True,
             instance_type=ec2.InstanceType.of(
                 instance_class=ec2.InstanceClass.BURSTABLE3_AMD,
                 instance_size=ec2.InstanceSize.NANO,
@@ -78,8 +84,7 @@ class NeptuneCluster(core.Construct):
 
     def __init__(
             self, scope: core.Construct, id: str,
-            vpc: ec2.IVpc, db_instance_class: str,
-            **kwargs) -> None:
+            vpc: ec2.IVpc, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         stack = core.Stack.of(self)
 
@@ -93,31 +98,16 @@ class NeptuneCluster(core.Construct):
             vpc=vpc,
         )
 
-        subnet_group = neptune.CfnDBSubnetGroup(
-            self, 'SubnetGroup',
-            db_subnet_group_name='{}-subnet-group'.format(stack.stack_name.lower()),
-            db_subnet_group_description='Private subnets',
-            subnet_ids=[subnet.subnet_id for subnet in vpc.private_subnets]
-        )
-
-        cluster = neptune.CfnDBCluster(
+        cluster = neptune.DatabaseCluster(
             self, 'Cluster',
-            db_subnet_group_name=subnet_group.ref,
-            vpc_security_group_ids=[sg.security_group_id],
-            associated_roles=[
-                {
-                    'roleArn': role.role_arn
-                }
-            ]
+            vpc=vpc,
+            instance_type=neptune.InstanceType.R5_LARGE,
+            associated_roles=[role],
+            security_groups=[sg],
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
 
-        neptune.CfnDBInstance(
-            self, 'Instance',
-            db_cluster_identifier=cluster.ref,
-            db_instance_class=db_instance_class,
-        )
-
-        self.endpoint = cluster.attr_endpoint
+        self.endpoint = cluster.cluster_endpoint.hostname
         self.role = role
         self.security_group = sg
 
@@ -139,7 +129,6 @@ class NeptuneStack(core.Stack):
         cluster = NeptuneCluster(
             self, 'Cluster',
             vpc=vpc,
-            db_instance_class='db.r5.large',
         )
 
         # An EC2 instance to run commands from
