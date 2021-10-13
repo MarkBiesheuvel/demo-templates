@@ -1,4 +1,4 @@
-aws-cdk.aws-iam
-aws-cdk.aws-lambda
-aws-cdk.aws-s3
-aws-cdk.core
+aws-cdk.aws-iam==1.117.0
+aws-cdk.aws-lambda==1.117.0
+aws-cdk.aws-s3==1.117.0
+aws-cdk.core==1.117.0

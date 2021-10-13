@@ -1,8 +1,8 @@
-aws-cdk.aws-autoscaling
-aws-cdk.aws-ec2
-aws-cdk.aws-iam
-aws-cdk.aws-lambda
-aws-cdk.aws-logs
-aws-cdk.aws-logs-destinations
-aws-cdk.aws-s3-assets
-aws-cdk.core
+aws-cdk.aws-autoscaling==1.117
+aws-cdk.aws-ec2==1.117
+aws-cdk.aws-iam==1.117
+aws-cdk.aws-lambda==1.117
+aws-cdk.aws-logs==1.117
+aws-cdk.aws-logs-destinations==1.117
+aws-cdk.aws-s3-assets==1.117
+aws-cdk.core==1.117

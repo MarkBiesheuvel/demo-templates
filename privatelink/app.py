@@ -34,10 +34,14 @@ class SourceVpc(core.Construct):
             ],
         )
 
+        user_data = ec2.UserData.for_linux()
+        user_data.add_commands('echo -e "+noall +answer" > /root/.digrc')
+
         ec2.Instance(
             self, 'Instance',
             role=role,
             vpc=vpc,
+            user_data=user_data,
             instance_type=ec2.InstanceType.of(
                 instance_class=ec2.InstanceClass.BURSTABLE3_AMD,
                 instance_size=ec2.InstanceSize.NANO,

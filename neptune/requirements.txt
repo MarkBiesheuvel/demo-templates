@@ -1,5 +1,5 @@
-aws-cdk.aws-ec2==1.73.0
-aws-cdk.aws-iam==1.73.0
-aws-cdk.aws-neptune==1.73.0
-aws-cdk.aws-s3-assets==1.73.0
-aws-cdk.core==1.73.0
+aws-cdk.aws-ec2==1.117.0
+aws-cdk.aws-iam==1.117.0
+aws-cdk.aws-neptune==1.117.0
+aws-cdk.aws-s3-assets==1.117.0
+aws-cdk.core==1.117.0
