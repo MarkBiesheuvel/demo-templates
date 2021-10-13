@@ -1,4 +1,4 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
 from aws_cdk import (
     core,
     aws_autoscaling as autoscaling,

@@ -1,4 +1,4 @@
-#!/user/bin/env python3
+#!/usr/bin/env python3
 from json import dumps as json_encode
 from aws_cdk import (
     core,
