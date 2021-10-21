@@ -1,10 +1,17 @@
+# Database design considerations comparison
+
+The [Planning and Designing Database on AWS](https://aws.amazon.com/training/classroom/planning-and-designing-databases-on-aws/) training goes into design considerations for many of the AWS database services. This table tries to summarize these considerations for easy comparison.
+
+Last updated on `October 21, 2021`
+
 | | Network access | Authentication & authorization | Partitioning<br/>(write scalability) | Read replicas<br/>(read scalability) | High availability<br/>(failover) | Encryption<br/>at rest | Encryption<br/>in transit |
 |---|---|---|---|---|---|---|---|
 | **Amazon ElastiCache for Memcached** [🏠][ecm1] | VPC [🔗][ecm2] | None | Optional; multi-node cluster [🍕][ecm4] | No | No [🔥][ecm6] | No [🔓][ecm7] | Yes [🔏][ecm8] |
 | **Amazon ElastiCache for Redis** [🏠][ecr1] | VPC [🔗][ecr2] | Redis AUTH [🧍][ecr3a]<br/> or Redis RBAC [🧍][ecr3b] | Optional; cluster mode enabled [🍕][ecr4] | Optional [♊][ecr5] | Failover to replica [🧯][ecr6] | Optional; KMS [🔐][ecr7]| Optional [🔏][ecr8] |
 | **Amazon Redshift** [🏠][red1] | VPC [🔗][red2] | Password, [🧍][red3a]<br> IAM or SAML [🧍][red3b] | Optional; distribution style EVEN or KEY [🍕][red4] | Optional; distribution style ALL [♊][red5] | Automatic restore from backup | Optional; KMS or HSM [🔐][red7] | Optional [🔏][red8] |
 | **Amazon RDS** [🏠][rds1] | VPC [🔗][rds2] | Password, Kerberos or IAM [🧍][rds3] | No | Optional [♊][rds5] | Failover to secondary [🧯][rds6] | Optional; KMS [🔐][rds7] | Optional [🔏][rds8] |
-| **Amazon Aurora** [🏠][aur1] | VPC [🔗][aur2a] or API [🖥️][aur2b] | Password, Kerberos or IAM [🧍][aur3] | No | Optional [♊][aur5] | Failover to replica [🧯][aur6a]<br/>or Multi-master [🧯][aur6b] | Optional; KMS [🔐][aur7] | Optional [🔏][aur8] |
+| **Amazon Aurora** [🏠][aur1] | VPC [🔗][aur2] | Password, Kerberos or IAM [🧍][aur3] | No | Optional [♊][aur5] | Failover to replica [🧯][aur6a]<br/>or Multi-master [🧯][aur6b] | Optional; KMS [🔐][aur7] | Optional [🔏][aur8] |
+| **Amazon Aurora Serverless** [🏠][asv1] | VPC [🔗][asv2a] or API [🖥️][asv2b] | Password, Kerberos or IAM [🧍][asv3] | No | Build-in replication [♊][asv5]| Build-in HA [🧯][asv6] | Optional; KMS [🔐][asv7] | Optional [🔏][asv8] |
 | **Amazon Neptune** [🏠][nep1] | VPC [🔗][nep2] | Optional; IAM [🧍][nep3] | No | Optional [♊][nep5] | Failover to replica [🧯][nep6] | Optional; KMS [🔐][nep7] | Yes [🔏][nep8] |
 | **Amazon DocumentDB (with MongoDB compatibility)** [🏠][doc1] | VPC [🔗][doc2] | Password [🧍][doc3] | No | Optional [♊][doc5] | Failover to replica [🧯][doc6] | Optional; KMS [🔐][doc7] | Yes [🔏][doc8] |
 | **Amazon QLDB** [🏠][qld1] | API [🖥️][qld2] | IAM [🧍][qld3] | Currently only single strand journal supported [🍕][qld4] | Build-in replication [♊][qld5] | Build-in HA [🧯][qld6] | Yes; KMS [🔐][qld7] | Yes [🔏][qld8] |
@@ -46,14 +53,22 @@
 [rds8]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html
 
 [aur1]: https://aws.amazon.com/rds/aurora/
-[aur2a]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.html
-[aur2b]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html
+[aur2]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.html
 [aur3]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/database-authentication.html
 [aur5]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html
 [aur6a]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html
 [aur6b]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-multi-master.html
 [aur7]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Overview.Encryption.html
 [aur8]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html
+
+[asv1]: https://aws.amazon.com/rds/aurora/serverless/
+[asv2a]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.html
+[asv2b]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html
+[asv3]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/database-authentication.html
+[asv5]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.how-it-works.html
+[asv6]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.how-it-works.html
+[asv7]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Overview.Encryption.html
+[asv8]: https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html
 
 [nep1]: https://aws.amazon.com/neptune/
 [nep2]: https://docs.aws.amazon.com/neptune/latest/userguide/security-vpc.html
