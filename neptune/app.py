@@ -9,6 +9,38 @@ from aws_cdk import (
 )
 
 
+class NeptuneCluster(core.Construct):
+
+    def __init__(
+            self, scope: core.Construct, id: str,
+            vpc: ec2.IVpc, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
+        stack = core.Stack.of(self)
+
+        role = iam.Role(
+            self, 'NeptuneRole',
+            assumed_by=iam.ServicePrincipal('rds.amazonaws.com'),
+        )
+
+        sg = ec2.SecurityGroup(
+            self, 'SecurityGroup',
+            vpc=vpc,
+        )
+
+        cluster = neptune.DatabaseCluster(
+            self, 'Cluster',
+            vpc=vpc,
+            instance_type=neptune.InstanceType.R5_LARGE,
+            associated_roles=[role],
+            security_groups=[sg],
+            removal_policy=core.RemovalPolicy.DESTROY,
+        )
+
+        self.endpoint = cluster.cluster_endpoint.hostname
+        self.role = role
+        self.security_group = sg
+
+
 class Instance(core.Construct):
 
     def __init__(
@@ -76,38 +108,6 @@ class Instance(core.Construct):
             ),
         )
 
-        self.role = role
-        self.security_group = sg
-
-
-class NeptuneCluster(core.Construct):
-
-    def __init__(
-            self, scope: core.Construct, id: str,
-            vpc: ec2.IVpc, **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
-        stack = core.Stack.of(self)
-
-        role = iam.Role(
-            self, 'NeptuneRole',
-            assumed_by=iam.ServicePrincipal('rds.amazonaws.com'),
-        )
-
-        sg = ec2.SecurityGroup(
-            self, 'SecurityGroup',
-            vpc=vpc,
-        )
-
-        cluster = neptune.DatabaseCluster(
-            self, 'Cluster',
-            vpc=vpc,
-            instance_type=neptune.InstanceType.R5_LARGE,
-            associated_roles=[role],
-            security_groups=[sg],
-            removal_policy=core.RemovalPolicy.DESTROY,
-        )
-
-        self.endpoint = cluster.cluster_endpoint.hostname
         self.role = role
         self.security_group = sg
 
