@@ -1,9 +1,9 @@
-|  | Network access | Authentication & authorization | Partitioning<br/>(write scalability) | Read replicas<br/>(read scalability) | High availability<br/>(failover) | Encryption<br/>at rest | Encryption<br/>in transit |
+| | Network access | Authentication & authorization | Partitioning<br/>(write scalability) | Read replicas<br/>(read scalability) | High availability<br/>(failover) | Encryption<br/>at rest | Encryption<br/>in transit |
 |---|---|---|---|---|---|---|---|
 | **Amazon ElastiCache for Memcached** [🏠][ecm1] | VPC [🔗][ecm2] | None | Optional; multi-node cluster [🍕][ecm4] | No | No [🔥][ecm6] | No [🔓][ecm7] | Yes [🔏][ecm8] |
 | **Amazon ElastiCache for Redis** [🏠][ecr1] | VPC [🔗][ecr2] | Redis AUTH [🧍][ecr3a]<br/> or Redis RBAC [🧍][ecr3b] | Optional; cluster mode enabled [🍕][ecr4] | Optional [♊][ecr5] | Failover to replica [🧯][ecr6] | Optional; KMS [🔐][ecr7]| Optional [🔏][ecr8] |
-| **Amazon Redshift** [🏠][red1] | VPC [🔗][red2]  | Password [🧍][red3] | Optional; distribution style EVEN or KEY [🍕][red4] | Optional; distribution style ALL [♊][red5] | Automatic restore from backup | Optional; KMS or HSM [🔐][red7] | Optional [🔏][red8] |
-| **Amazon RDS** [🏠][rds1] | VPC [🔗][rds2] | Password, Kerberos or IAM [🧍][rds3] |  No | Optional [♊][rds5] | Failover to secondary [🧯][rds6] | Optional; KMS [🔐][rds7] | Optional [🔏][rds8] |
+| **Amazon Redshift** [🏠][red1] | VPC [🔗][red2] | Password, [🧍][red3a]<br> IAM or SAML [🧍][red3b] | Optional; distribution style EVEN or KEY [🍕][red4] | Optional; distribution style ALL [♊][red5] | Automatic restore from backup | Optional; KMS or HSM [🔐][red7] | Optional [🔏][red8] |
+| **Amazon RDS** [🏠][rds1] | VPC [🔗][rds2] | Password, Kerberos or IAM [🧍][rds3] | No | Optional [♊][rds5] | Failover to secondary [🧯][rds6] | Optional; KMS [🔐][rds7] | Optional [🔏][rds8] |
 | **Amazon Aurora** [🏠][aur1] | VPC [🔗][aur2a] or API [🖥️][aur2b] | Password, Kerberos or IAM [🧍][aur3] | No | Optional [♊][aur5] | Failover to replica [🧯][aur6a]<br/>or Multi-master [🧯][aur6b] | Optional; KMS [🔐][aur7] | Optional [🔏][aur8] |
 | **Amazon Neptune** [🏠][nep1] | VPC [🔗][nep2] | Optional; IAM [🧍][nep3] | No | Optional [♊][nep5] | Failover to replica [🧯][nep6] | Optional; KMS [🔐][nep7] | Yes [🔏][nep8] |
 | **Amazon DocumentDB (with MongoDB compatibility)** [🏠][doc1] | VPC [🔗][doc2] | Password [🧍][doc3] | No | Optional [♊][doc5] | Failover to replica [🧯][doc6] | Optional; KMS [🔐][doc7] | Yes [🔏][doc8] |
@@ -30,7 +30,8 @@
 
 [red1]: https://aws.amazon.com/redshift/
 [red2]: https://docs.aws.amazon.com/redshift/latest/mgmt/managing-clusters-vpc.html
-[red3]: https://docs.aws.amazon.com/redshift/latest/dg/r_Users.html
+[red3a]: https://docs.aws.amazon.com/redshift/latest/dg/r_Users.html
+[red3b]: https://docs.aws.amazon.com/redshift/latest/mgmt/options-for-providing-iam-credentials.html
 [red4]: https://docs.aws.amazon.com/redshift/latest/dg/c_choosing_dist_sort.html
 [red5]: https://docs.aws.amazon.com/redshift/latest/dg/c_choosing_dist_sort.html
 [red7]: https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html
