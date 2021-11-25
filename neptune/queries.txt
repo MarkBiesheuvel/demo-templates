@@ -1,0 +1,34 @@
+
+# Command to set up connection
+
+sudo su -
+cd ~/apache-tinkerpop-gremlin-console-3.4.8/
+./bin/gremlin.sh
+:remote connect tinkerpop.server conf/neptune-remote.yaml
+:remote console
+
+# Commands for game recommendations
+
+g.V().hasLabel('person')
+g.V().hasLabel('game').groupCount().by('GameGenre')
+
+g.V().has('GamerAlias','groundWalker').as('TargetGamer').out('likes').aggregate('self').in('likes').where(neq('TargetGamer')).out('likes').where(without('self')).dedup().values('GameTitle')
+
+# Commands for flights
+
+g.V().hasLabel('airport')
+g.V().hasLabel('airport').values('name')
+
+g.E().hasLabel('flight')
+g.E().hasLabel('flight').groupCount().by('airline')
+
+g.V('AMS').out()
+g.V('AMS').as('origin').out().out().where(neq('origin')).dedup()
+
+g.V('AMS').outE()
+g.V('AMS').outE().has('airline', 'KLM')
+g.V('AMS').outE().has('airline', 'easyJet')
+
+g.V('AMS').outE().inV().outE().inV().simplePath().path().by(id).by(id)
+
+g.V('AMS').repeat(outE().inV().simplePath()).until(hasId('KUL')).path().by(id).limit(10)

@@ -145,78 +145,49 @@ class NeptuneStack(core.Stack):
         )
 
         # Demo files
-        vertices_asset = s3_assets.Asset(
-            self, 'VerticesCsv',
-            path='./files/vertices.csv',
-            readers=[cluster.role],
-        )
-        edges_asset = s3_assets.Asset(
-            self, 'EdgesCsv',
-            path='./files/edges.csv',
-            readers=[cluster.role],
-        )
+        # Numbers are used so the files are in the correct order. Need to load vertices before edges
+        assets = [
+            s3_assets.Asset(
+                self, '1GameVerticesCsv',
+                path='./files/games/vertices.csv',
+                readers=[cluster.role],
+            ),
+            s3_assets.Asset(
+                self, '2GameEdgesCsv',
+                path='./files/games/edges.csv',
+                readers=[cluster.role],
+            ),
+            s3_assets.Asset(
+                self, '3FlightVerticesCsv',
+                path='./files/flights/vertices.csv',
+                readers=[cluster.role],
+            ),
+            s3_assets.Asset(
+                self, '4FlightEdgesCsv',
+                path='./files/flights/edges.csv',
+                readers=[cluster.role],
+            ),
+        ]
 
-        core.CfnOutput(
-            self, 'Command1LoadVertices',
-            value='curl -X POST -H \'{headers}\' {url} -d \'{request_body}\''.format(
-                headers='Content-Type: application/json',
-                url='https://{endpoint}:8182/loader'.format(endpoint=cluster.endpoint),
-                request_body=json_encode({
-                    'failOnError': 'FALSE',
-                    'format': 'csv',
-                    'region': stack.region,
-                    'iamRoleArn': cluster.role.role_arn,
-                    'source': 's3://{bucket}/{key}'.format(
-                        bucket=vertices_asset.s3_bucket_name,
-                        key=vertices_asset.s3_object_key,
-                    ),
-                }),
+        cluster_url = 'https://{endpoint}:8182/loader'.format(endpoint=cluster.endpoint)
+        for asset in assets:
+            core.CfnOutput(
+                self, 'Load{}'.format(asset.node.id),
+                value='curl -X POST -H \'{headers}\' {url} -d \'{request_body}\''.format(
+                    headers='Content-Type: application/json',
+                    url=cluster_url,
+                    request_body=json_encode({
+                        'failOnError': 'FALSE',
+                        'format': 'csv',
+                        'region': stack.region,
+                        'iamRoleArn': cluster.role.role_arn,
+                        'source': 's3://{bucket}/{key}'.format(
+                            bucket=asset.s3_bucket_name,
+                            key=asset.s3_object_key,
+                        ),
+                    }),
+                )
             )
-        )
-
-        core.CfnOutput(
-            self, 'Command2LoadEdges',
-            value='curl -X POST -H \'{headers}\' {url} -d \'{request_body}\''.format(
-                headers='Content-Type: application/json',
-                url='https://{endpoint}:8182/loader'.format(endpoint=cluster.endpoint),
-                request_body=json_encode({
-                    'failOnError': 'FALSE',
-                    'format': 'csv',
-                    'region': stack.region,
-                    'iamRoleArn': cluster.role.role_arn,
-                    'source': 's3://{bucket}/{key}'.format(
-                        bucket=edges_asset.s3_bucket_name,
-                        key=edges_asset.s3_object_key,
-                    ),
-                }),
-            )
-        )
-
-        core.CfnOutput(
-            self, 'Command3ListAllVertices',
-            value=':remote connect tinkerpop.server conf/neptune-remote.yaml',
-        )
-
-        core.CfnOutput(
-            self, 'Command4ListAllVertices',
-            value=':remote console',
-        )
-
-        core.CfnOutput(
-            self, 'Command5ListAllGamers',
-            value='g.V().hasLabel("person")',
-        )
-
-        core.CfnOutput(
-            self, 'Command6ListAllGamers',
-            value='g.V().hasLabel("game").groupCount().by("GameGenre")',
-        )
-
-        core.CfnOutput(
-            self, 'Command7ListAllGamers',
-            value='g.V().has("GamerAlias","groundWalker").as("TargetGamer").out("likes").aggregate("self").in("likes").where(neq("TargetGamer")).out("likes").where(without("self")).dedup().values("GameTitle")',
-        )
-
 
 
 

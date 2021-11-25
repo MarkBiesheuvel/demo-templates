@@ -1,0 +1,41 @@
+~id,   ~from, ~to, ~label, airline:String
+KL991,   AMS, LCY, flight, KLM
+U28880,  AMS, LGW, flight, easyJet
+KL1001,  AMS, LHR, flight, KLM
+BA441,   AMS, LHR, flight, British Airways
+EK148,   AMS, DXB, flight, Emirates
+QR274,   AMS, DOH, flight, Qatar Airways
+SQ323,   AMS, SIN, flight, Singapore Airlines
+U28883,  LGW, AMS, flight, easyJet
+KL992,   LCY, AMS, flight, KLM
+KL1000,  LHR, AMS, flight, KLM
+BA444,   LHR, AMS, flight, British Airways
+QR4,     LHR, DOH, flight, Qatar Airways
+BA33,    LHR, KUL, flight, British Airways
+MH3,     LHR, KUL, flight, Malaysia Airlines
+EK2,     LHR, DXB, flight, Emirates
+BA107,   LHR, DXB, flight, British Airways
+EK354,   DXB, SIN, flight, Emirates
+SQ495,   DXB, SIN, flight, Singapore Airlines
+EK346,   DXB, KUL, flight, Emirates
+EK419,   DXB, AMS, flight, Emirates
+EK1,     DXB, LHR, flight, Emirates
+BA104,   DXB, LHR, flight, British Airways
+QR1003,  DXB, DOH, flight, Qatar Airways
+QR272,   DOH, AMS, flight, Qatar Airways
+QR9,     DOH, LHR, flight, Qatar Airways
+QR946,   DOH, SIN, flight, Qatar Airways
+QR848,   DOH, KUL, flight, Qatar Airways
+QR1002,  DOH, DXB, flight, Qatar Airways
+KL840,   SIN, AMS, flight, Singapore Airlines
+SQ106,   SIN, KUL, flight, Singapore Airlines
+BA12,    SIN, LHR, flight, British Airways
+SQ306,   SIN, LHR, flight, Singapore Airlines
+EK353,   SIN, DXB, flight, Emirates
+SQ494,   SIN, DXB, flight, Singapore Airlines
+QR945,   SIN, DOH, flight, Qatar Airways
+BA34,    KUL, LHR, flight, British Airways
+MH4,     KUL, LHR, flight, Malaysia Airlines
+QR853,   KUL, DOH, flight, Qatar Airways
+EK347,   KUL, DXB, flight, Emirates
+SQ105,   KUL, SIN, flight, Singapore Airlines

@@ -1,0 +1,9 @@
+~id,  ~label, name:String
+AMS, airport, Amsterdam Airport Schiphol
+LCY, airport, London City Airport
+LHR, airport, Heathrow Airport
+LGW, airport, Gatwick Airport
+DXB, airport, Dubai International Airport
+DOH, airport, Hamad International Airport
+SIN, airport, Singapore Changi Airport
+KUL, airport, Kuala Lumpur International Airport
