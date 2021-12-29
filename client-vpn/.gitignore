@@ -1,0 +1,4 @@
+.venv
+cdk.out
+cdk.context.json
+files/
