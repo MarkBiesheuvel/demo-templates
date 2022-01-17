@@ -10,6 +10,7 @@ cd ~/apache-tinkerpop-gremlin-console-3.4.8/
 # Commands for game recommendations
 
 g.V().hasLabel('person')
+g.E().hasLabel('likes')
 g.V().hasLabel('game').groupCount().by('GameGenre')
 
 g.V().has('GamerAlias','groundWalker').as('TargetGamer').out('likes').aggregate('self').in('likes').where(neq('TargetGamer')).out('likes').where(without('self')).dedup().values('GameTitle')
@@ -32,3 +33,10 @@ g.V('AMS').outE().has('airline', 'easyJet')
 g.V('AMS').outE().inV().outE().inV().simplePath().path().by(id).by(id)
 
 g.V('AMS').repeat(outE().inV().simplePath()).until(hasId('KUL')).path().by(id).limit(10)
+
+g.V('AMS').repeat(outE().has('airline', 'British Airways').inV().simplePath()).until(hasId('KUL')).path().by(id).limit(10)
+g.V('AMS').repeat(outE().has('airline', 'Qatar Airways').inV().simplePath()).until(hasId('KUL')).path().by(id).limit(10)
+
+
+# TODO: build query with duration
+# https://tinkerpop.apache.org/docs/current/reference/#sum-step
