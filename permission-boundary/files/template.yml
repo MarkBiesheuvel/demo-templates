@@ -1,0 +1,67 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+
+  SecurityGroupInstance:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: ssh
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t4g.nano
+      IamInstanceProfile: !Ref InstanceProfile
+      NetworkInterfaces:
+        -
+          DeviceIndex: 0
+          AssociatePublicIpAddress: True
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref SecurityGroupInstance
+      KeyName: !Ref KeyPairName
+      ImageId: ami-0d323e204cce5a382 # TODO: solve the "User doesn't have permission to call ssm:GetParameters" error
+      Tags:
+        -
+          Key: Name
+          Value: !Sub ${AWS::StackName}-instance
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: ec2.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
